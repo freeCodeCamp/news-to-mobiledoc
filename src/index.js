@@ -24,11 +24,8 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
     }
   }
 
-  const embedYouTubePlugin = (
-    { nodeType, tagName, href },
-    builder,
-    { addSection, nodeFinished }
-  ) => {
+  const embedYouTubePlugin = (node, builder, { addSection, nodeFinished }) => {
+    const { nodeType, tagName, href } = node
     if (nodeType !== 1 || tagName !== 'A' || !href) {
       return
     }
@@ -43,7 +40,7 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
       '<iframe width="480" height="270" src="' +
       'https://www.youtube.com/embed/' +
       urlShortId +
-      '?feature=oembed" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>"'
+      '?feature=oembed" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
 
     let payload = {
       html: html,
