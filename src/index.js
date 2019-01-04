@@ -2,8 +2,10 @@ import fs from 'fs'
 import converter from '@tryghost/html-to-mobiledoc'
 import plugins from '@tryghost/kg-parser-plugins'
 
+const getYouTubeIdRegex = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/
+
 let articles
-const processedArticles = []
+let processedArticles = []
 
 fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
   if (err) throw err
@@ -23,23 +25,41 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
   }
 
   const embedYouTubePlugin = (
-    { nodeType, tagName },
+    { nodeType, tagName, href },
     builder,
     { addSection, nodeFinished }
   ) => {
-    /*
-    if (nodeType !== 1 || tagName !== "A") {
-      return;
+    if (nodeType !== 1 || tagName !== 'A' || !href) {
+      return
     }
 
-    const cardSection = builder.createCardSection("image", payload);
-    addSection(cardSection);
-    nodeFinished();
-    */
+    const youtubeURLMathched = href.match(getYouTubeIdRegex)
+    if (!youtubeURLMathched) {
+      return
+    }
+
+    const urlShortId = youtubeURLMathched[1]
+    const html =
+      '<iframe width="480" height="270" src="' +
+      'https://www.youtube.com/embed/' +
+      urlShortId +
+      '?feature=oembed" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>"'
+
+    let payload = {
+      html: html,
+      type: 'video',
+      url: href
+    }
+
+    const cardSection = builder.createCardSection('embed', payload)
+    addSection(cardSection)
+    nodeFinished()
   }
   plugins.push(embedYouTubePlugin)
 
+  let count = 0
   const returnMobiledocForContent = ({ renderableContent, _id }) => {
+    count++
     try {
       const mobileDoc = converter.toMobiledoc(renderableContent, {
         plugins
@@ -47,7 +67,9 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
       return JSON.stringify(mobileDoc)
     } catch (error) {
       console.log('Could not process:', _id)
+      console.log('Articles Processed before this:', count - 1)
       console.error(error)
+      // process.exit()
       return ''
     }
   }
@@ -64,8 +86,10 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
       shortId,
       author
     } = article
+
     const { username } = author
     const authorId = returnAuthorIdForUserName(username)
+
     const processedArticle = {
       id: _id,
       title,
@@ -84,6 +108,7 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
         shortId: shortId
       }
     }
+
     processedArticles.push(processedArticle)
   })
 
