@@ -24,6 +24,29 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
     }
   }
 
+  const isPodcastiframeRegex = /^<iframe style=/
+  const embedPodcastPlugin = (node, builder, { addSection, nodeFinished }) => {
+    const { nodeType, tagName, outerHTML } = node
+
+    if (
+      nodeType !== 1 ||
+      tagName !== 'IFRAME' ||
+      true !== (outerHTML && isPodcastiframeRegex.test(outerHTML))
+    ) {
+      return
+    }
+
+    let payload = {
+      html: outerHTML
+    }
+
+    const cardSection = builder.createCardSection('embed', payload)
+    addSection(cardSection)
+
+    nodeFinished()
+  }
+  plugins.push(embedPodcastPlugin)
+
   const isYouTubeStringRegex = /\s(the freeCodeCamp.org YouTube channel)\s/
   const isYouTubeIdRegex = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/
 
@@ -62,7 +85,7 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
       '?feature=oembed" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
 
     let payload = {
-      html: html,
+      html,
       type: 'video',
       url: href
     }
