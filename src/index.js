@@ -26,6 +26,7 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
 
   const embedYouTubePlugin = (node, builder, { addSection, nodeFinished }) => {
     const { nodeType, tagName, href } = node
+    debugger
     if (nodeType !== 1 || tagName !== 'A' || !href) {
       return
     }
@@ -34,6 +35,19 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
     if (!youtubeURLMathched) {
       return
     }
+
+    const anchorMarkup = builder.createMarkup('a', { href })
+
+    const prevNodeMarker = builder.createMarker(node.previousSibling.nodeValue)
+    const thisNodeMarker = builder.createMarker(node.text, [anchorMarkup])
+    const nextNodeMarker = builder.createMarker(node.nextSibling.nodeValue)
+
+    const markupSection = builder.createMarkupSection('p', [
+      prevNodeMarker,
+      thisNodeMarker,
+      nextNodeMarker
+    ])
+    addSection(markupSection)
 
     const urlShortId = youtubeURLMathched[1]
     const html =
@@ -50,6 +64,7 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
 
     const cardSection = builder.createCardSection('embed', payload)
     addSection(cardSection)
+
     nodeFinished()
   }
   plugins.push(embedYouTubePlugin)

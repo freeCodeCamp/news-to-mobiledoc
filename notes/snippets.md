@@ -1,10 +1,4 @@
-```js
-const marker = builder.createMarker(node.parentElement.innerHTML)
-const markupSection = builder.createMarkupSection('P', [marker])
-addSection(markupSection)
-```
 
----
 
 ```js
 {
