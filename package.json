@@ -15,7 +15,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@tryghost/html-to-mobiledoc": "^0.2.1"
+    "@tryghost/html-to-mobiledoc": "^0.2.1",
+    "dotenv": "^6.2.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",

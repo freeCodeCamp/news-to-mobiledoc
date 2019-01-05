@@ -1,9 +1,8 @@
+require('dotenv').config()
+
 import fs from 'fs'
 import converter from '@tryghost/html-to-mobiledoc'
 import plugins from '@tryghost/kg-parser-plugins'
-
-const isYouTubeStringRegex = /\s(the freeCodeCamp.org YouTube channel)\s/
-const isYouTubeIdRegex = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/
 
 let articles
 let processedArticles = []
@@ -24,6 +23,9 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
         return '1' // set by default to freeCodeCamp.org owner account
     }
   }
+
+  const isYouTubeStringRegex = /\s(the freeCodeCamp.org YouTube channel)\s/
+  const isYouTubeIdRegex = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/
 
   const embedYouTubePlugin = (node, builder, { addSection, nodeFinished }) => {
     const { nodeType, tagName, textContent } = node
@@ -72,19 +74,18 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
   }
   plugins.push(embedYouTubePlugin)
 
-  let count = 0
   const returnMobiledocForContent = ({ renderableContent, _id }) => {
-    count++
     try {
       const mobileDoc = converter.toMobiledoc(renderableContent, {
         plugins
       })
       return JSON.stringify(mobileDoc)
     } catch (error) {
-      console.log('Could not process:', _id)
-      console.log('Articles Processed before this:', count - 1)
-      console.error(error)
-      // process.exit()
+      if (process.env.LOG_AND_EXIT_EARLY === 'true') {
+        console.log('Could not process:', _id)
+        console.error(error)
+        process.exit()
+      }
       return ''
     }
   }
