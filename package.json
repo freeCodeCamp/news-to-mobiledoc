@@ -6,12 +6,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "babel src -d lib",
+    "build": "babel src -d bin",
     "predevelop": "npm run build",
-    "develop": "node inspect lib/index.js",
+    "develop": "node inspect bin/index.js",
     "lint": "lint-staged",
     "prestart": "npm run build",
-    "start": "node lib/index.js",
+    "start": "node bin/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -31,7 +31,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run build && git add lib/* && lint-staged"
+      "pre-commit": "npm run build && git add bin/* && lint-staged"
     }
   },
   "lint-staged": {
