@@ -121,6 +121,7 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
       createdDate,
       lastEditedDate,
       firstPublishedDate,
+      featureImage,
       viewCount,
       shortId,
       author
@@ -142,6 +143,7 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
       updated_by: authorId,
       published_at: firstPublishedDate,
       published_by: authorId,
+      feature_image: featureImage.src,
       info: {
         viewCount: viewCount,
         shortId: shortId
