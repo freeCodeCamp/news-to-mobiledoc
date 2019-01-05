@@ -2,7 +2,8 @@ import fs from 'fs'
 import converter from '@tryghost/html-to-mobiledoc'
 import plugins from '@tryghost/kg-parser-plugins'
 
-const getYouTubeIdRegex = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/
+const isYouTubeStringRegex = /\s(the freeCodeCamp.org YouTube channel)\s/
+const isYouTubeIdRegex = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/
 
 let articles
 let processedArticles = []
@@ -25,22 +26,24 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
   }
 
   const embedYouTubePlugin = (node, builder, { addSection, nodeFinished }) => {
-    const { nodeType, tagName, href } = node
-    debugger
-    if (nodeType !== 1 || tagName !== 'A' || !href) {
+    const { nodeType, tagName, textContent } = node
+    if (
+      nodeType !== 1 ||
+      tagName !== 'P' ||
+      true !== (textContent && isYouTubeStringRegex.test(textContent))
+    ) {
       return
     }
 
-    const youtubeURLMathched = href.match(getYouTubeIdRegex)
-    if (!youtubeURLMathched) {
-      return
-    }
-
+    const href = node.firstElementChild.href
     const anchorMarkup = builder.createMarkup('a', { href })
 
-    const prevNodeMarker = builder.createMarker(node.previousSibling.nodeValue)
-    const thisNodeMarker = builder.createMarker(node.text, [anchorMarkup])
-    const nextNodeMarker = builder.createMarker(node.nextSibling.nodeValue)
+    const prevNodeMarker = builder.createMarker(node.firstChild.textContent)
+    const thisNodeMarker = builder.createMarker(
+      'the freeCodeCamp.org YouTube channel',
+      [anchorMarkup]
+    )
+    const nextNodeMarker = builder.createMarker(node.lastChild.textContent)
 
     const markupSection = builder.createMarkupSection('p', [
       prevNodeMarker,
@@ -49,7 +52,7 @@ fs.readFile('data/freecodecamp.article.json', 'utf8', (err, data) => {
     ])
     addSection(markupSection)
 
-    const urlShortId = youtubeURLMathched[1]
+    const urlShortId = href.match(isYouTubeIdRegex)[1]
     const html =
       '<iframe width="480" height="270" src="' +
       'https://www.youtube.com/embed/' +
